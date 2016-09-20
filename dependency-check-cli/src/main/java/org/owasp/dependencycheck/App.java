@@ -160,7 +160,7 @@ public class App {
             try {
                 final String[] scanFiles = cli.getScanFiles();
                 if (scanFiles != null) {
-                    runScan(cli.getReportDirectory(), cli.getReportFormat(), cli.getProjectName(), scanFiles,
+                    exitCode = runScan(cli.getReportDirectory(), cli.getReportFormat(), cli.getProjectName(), scanFiles,
                             cli.getExcludeList(), cli.getSymLinkDepth());
                 } else {
                     LOGGER.error("No scan files configured");
@@ -212,9 +212,10 @@ public class App {
      * analysis; there may be multiple exceptions contained within the
      * collection.
      */
-    private void runScan(String reportDirectory, String outputFormat, String applicationName, String[] files,
+    private int runScan(String reportDirectory, String outputFormat, String applicationName, String[] files,
             String[] excludes, int symLinkDepth) throws InvalidScanPathException, DatabaseException, ExceptionCollection, ReportException {
         Engine engine = null;
+        int retValue = 0;
         try {
             engine = new Engine();
             final List<String> antStylePaths = new ArrayList<String>();
@@ -276,6 +277,14 @@ public class App {
                 exCol = ex;
             }
             final List<Dependency> dependencies = engine.getDependencies();
+
+            for(Dependency dep : dependencies) {
+                if(dep.getVulnerabilities().size() != 0) {
+                    LOGGER.debug("VULNERABILITY FOUND "+dep.getDisplayFileName());
+                    retValue = -1;
+                }
+            }
+
             DatabaseProperties prop = null;
             CveDB cve = null;
             try {
@@ -307,6 +316,7 @@ public class App {
             }
         }
 
+        return retValue;
     }
 
     /**
