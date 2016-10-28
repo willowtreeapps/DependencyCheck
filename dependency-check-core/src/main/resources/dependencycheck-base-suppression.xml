@@ -8,6 +8,8 @@
         <cpe>cpe:/a:mod_security:mod_security</cpe>
         <cpe>cpe:/a:springsource:spring_framework</cpe>
         <cpe>cpe:/a:vmware:springsource_spring_framework</cpe>
+        <cpe>cpe:/a:pivotal:spring_framework</cpe>
+        <cpe>cpe:/a:pivotal_software:spring_framework</cpe>
     </suppress>
     <suppress base="true">
         <notes><![CDATA[
@@ -18,6 +20,7 @@
         <cpe>cpe:/a:springsource:spring_framework</cpe>
         <cpe>cpe:/a:vmware:springsource_spring_framework</cpe>
         <cpe>cpe:/a:pivotal:spring_framework</cpe>
+        <cpe>cpe:/a:pivotal_software:spring_framework</cpe>
     </suppress>
     <suppress base="true">
         <notes><![CDATA[
@@ -433,5 +436,12 @@
         ]]></notes>
         <gav regex="true">^(?!com.thoughtworks).*xstream.*$</gav>
         <cpe>cpe:/a:x-stream:xstream</cpe>
+    </suppress>
+    <suppress base="true">
+        <notes><![CDATA[
+        false positive per issue #582
+        ]]></notes>
+        <gav regex="true">^org\.glassfish\.jersey\.ext:jersey-proxy-client:.*$</gav>
+        <cpe>cpe:/a:oracle:oracle_client</cpe>
     </suppress>
 </suppressions>

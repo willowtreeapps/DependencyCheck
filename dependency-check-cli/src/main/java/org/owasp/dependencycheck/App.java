@@ -19,6 +19,7 @@ package org.owasp.dependencycheck;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -177,7 +178,7 @@ public class App {
             } catch (ExceptionCollection ex) {
                 if (ex.isFatal()) {
                     exitCode = -13;
-                    LOGGER.error("One or more fatal errors occured");
+                    LOGGER.error("One or more fatal errors occurred");
                 } else {
                     exitCode = -14;
                 }
@@ -347,6 +348,7 @@ public class App {
         final String dataDirectory = cli.getDataDirectory();
         final File propertiesFile = cli.getPropertiesFile();
         final String suppressionFile = cli.getSuppressionFile();
+        final String hintsFile = cli.getHintsFile();
         final String nexusUrl = cli.getNexusUrl();
         final String databaseDriverName = cli.getDatabaseDriverName();
         final String databaseDriverPath = cli.getDatabaseDriverPath();
@@ -394,6 +396,7 @@ public class App {
         Settings.setStringIfNotEmpty(Settings.KEYS.PROXY_PASSWORD, proxyPass);
         Settings.setStringIfNotEmpty(Settings.KEYS.CONNECTION_TIMEOUT, connectionTimeout);
         Settings.setStringIfNotEmpty(Settings.KEYS.SUPPRESSION_FILE, suppressionFile);
+        Settings.setStringIfNotEmpty(Settings.KEYS.HINTS_FILE, hintsFile);
         Settings.setIntIfNotNull(Settings.KEYS.CVE_CHECK_VALID_FOR_HOURS, cveValidForHours);
 
         //File Type Analyzer Settings
@@ -445,7 +448,7 @@ public class App {
         encoder.setPattern("%d %C:%L%n%-5level - %msg%n");
         encoder.setContext(context);
         encoder.start();
-        final FileAppender fa = new FileAppender();
+        final FileAppender<ILoggingEvent> fa = new FileAppender<ILoggingEvent>();
         fa.setAppend(true);
         fa.setEncoder(encoder);
         fa.setContext(context);

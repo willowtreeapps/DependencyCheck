@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Jeremy Long
  */
-public class DependencyBundlingAnalyzer extends AbstractAnalyzer implements Analyzer {
+public class DependencyBundlingAnalyzer extends AbstractAnalyzer {
 
     /**
      * The Logger.
@@ -58,10 +58,23 @@ public class DependencyBundlingAnalyzer extends AbstractAnalyzer implements Anal
      * A pattern for obtaining the first part of a filename.
      */
     private static final Pattern STARTING_TEXT_PATTERN = Pattern.compile("^[a-zA-Z0-9]*");
+
     /**
      * a flag indicating if this analyzer has run. This analyzer only runs once.
      */
     private boolean analyzed = false;
+
+    /**
+     * Returns a flag indicating if this analyzer has run. This analyzer only
+     * runs once. Note this is currently only used in the unit tests.
+     *
+     * @return a flag indicating if this analyzer has run. This analyzer only
+     * runs once
+     */
+    protected boolean getAnalyzed() {
+        return analyzed;
+    }
+
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="All standard implementation details of Analyzer">
     /**
@@ -93,6 +106,18 @@ public class DependencyBundlingAnalyzer extends AbstractAnalyzer implements Anal
         return ANALYSIS_PHASE;
     }
     //</editor-fold>
+
+    /**
+     * Does not support parallel processing as it only runs once and then
+     * operates on <em>all</em> dependencies.
+     *
+     * @return whether or not parallel processing is enabled
+     * @see #analyze(Dependency, Engine)
+     */
+    @Override
+    public boolean supportsParallelProcessing() {
+        return false;
+    }
 
     /**
      * Analyzes a set of dependencies. If they have been found to have the same
@@ -350,11 +375,7 @@ public class DependencyBundlingAnalyzer extends AbstractAnalyzer implements Anal
                 || dependency2.getPackagePath() == null) {
             return false;
         }
-        if (dependency1.getPackagePath().equalsIgnoreCase(dependency2.getPackagePath())) {
-            return true;
-        }
-
-        return false;
+        return dependency1.getPackagePath().equalsIgnoreCase(dependency2.getPackagePath());
     }
 
     /**
@@ -405,10 +426,7 @@ public class DependencyBundlingAnalyzer extends AbstractAnalyzer implements Anal
                 || dependency2.getPackagePath() == null) {
             return false;
         }
-        if (dependency1.getPackagePath().equalsIgnoreCase(dependency2.getPackagePath())) {
-            return true;
-        }
-        return false;
+        return dependency1.getPackagePath().equalsIgnoreCase(dependency2.getPackagePath());
     }
 
     /**
@@ -517,6 +535,9 @@ public class DependencyBundlingAnalyzer extends AbstractAnalyzer implements Anal
      * <code>false</code>
      */
     protected boolean firstPathIsShortest(String left, String right) {
+        if (left.contains("dctemp")) {
+            return false;
+        }
         final String leftPath = left.replace('\\', '/');
         final String rightPath = right.replace('\\', '/');
 

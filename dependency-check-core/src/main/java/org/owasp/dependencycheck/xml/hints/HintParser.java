@@ -109,6 +109,7 @@ public class HintParser {
             schemaStream = this.getClass().getClassLoader().getResourceAsStream(HINT_SCHEMA);
             final HintHandler handler = new HintHandler();
             final SAXParserFactory factory = SAXParserFactory.newInstance();
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             factory.setNamespaceAware(true);
             factory.setValidating(true);
             final SAXParser saxParser = factory.newSAXParser();

@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
@@ -59,7 +60,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Jeremy Long
  */
-public class CPEAnalyzer implements Analyzer {
+public class CPEAnalyzer extends AbstractAnalyzer {
 
     /**
      * The Logger.
@@ -155,10 +156,10 @@ public class CPEAnalyzer implements Analyzer {
             cve.open();
             cpe = CpeMemoryIndex.getInstance();
             try {
-                LOGGER.info("Creating the CPE Index");
                 final long creationStart = System.currentTimeMillis();
                 cpe.open(cve);
-                LOGGER.info("CPE Index Created ({} ms)", System.currentTimeMillis() - creationStart);
+                final long creationSeconds = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - creationStart);
+                LOGGER.info("Created CPE Index ({} seconds)", creationSeconds);
             } catch (IndexException ex) {
                 LOGGER.debug("IndexException", ex);
                 throw new DatabaseException(ex);

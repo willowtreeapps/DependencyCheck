@@ -206,6 +206,13 @@ public abstract class BaseDependencyCheckMojo extends AbstractMojo implements Ma
      */
     @Parameter(property = "suppressionFile", defaultValue = "", required = false)
     private String suppressionFile;
+
+    /**
+     * The path to the hints file.
+     */
+    @Parameter(property = "hintsFile", defaultValue = "", required = false)
+    private String hintsFile;
+
     /**
      * Flag indicating whether or not to show a summary in the output.
      */
@@ -654,7 +661,8 @@ public abstract class BaseDependencyCheckMojo extends AbstractMojo implements Ma
             try {
                 final ArtifactResult result = repoSystem.resolveArtifact(repoSession, request);
                 if (result.isResolved() && result.getArtifact() != null && result.getArtifact().getFile() != null) {
-                    final List<Dependency> deps = engine.scan(result.getArtifact().getFile().getAbsoluteFile());
+                    final List<Dependency> deps = engine.scan(result.getArtifact().getFile().getAbsoluteFile(),
+                            project.getName() + ":" + dependencyNode.getArtifact().getScope());
                     if (deps != null) {
                         if (deps.size() == 1) {
                             final Dependency d = deps.get(0);
@@ -662,7 +670,6 @@ public abstract class BaseDependencyCheckMojo extends AbstractMojo implements Ma
                                 final Artifact a = result.getArtifact();
                                 final MavenArtifact ma = new MavenArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion());
                                 d.addAsEvidence("pom", ma, Confidence.HIGHEST);
-                                d.addProjectReference(project.getName() + ":" + dependencyNode.getArtifact().getScope());
                                 if (getLog().isDebugEnabled()) {
                                     getLog().debug(String.format("Adding project reference %s on dependency %s",
                                             project.getName(), d.getDisplayFileName()));
@@ -848,6 +855,7 @@ public abstract class BaseDependencyCheckMojo extends AbstractMojo implements Ma
 
         Settings.setStringIfNotEmpty(Settings.KEYS.CONNECTION_TIMEOUT, connectionTimeout);
         Settings.setStringIfNotEmpty(Settings.KEYS.SUPPRESSION_FILE, suppressionFile);
+        Settings.setStringIfNotEmpty(Settings.KEYS.HINTS_FILE, hintsFile);
 
         //File Type Analyzer Settings
         Settings.setBooleanIfNotNull(Settings.KEYS.ANALYZER_JAR_ENABLED, jarAnalyzerEnabled);

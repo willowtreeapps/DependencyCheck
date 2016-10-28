@@ -26,7 +26,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +34,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -76,7 +76,7 @@ public class JarAnalyzer extends AbstractFileTypeAnalyzer {
      * The count of directories created during analysis. This is used for
      * creating temporary directories.
      */
-    private static int dirCount = 0;
+    private static final AtomicInteger DIR_COUNT = new AtomicInteger(0);
     /**
      * The system independent newline character.
      */
@@ -318,7 +318,6 @@ public class JarAnalyzer extends AbstractFileTypeAnalyzer {
                     pom.processProperties(pomProperties);
                     setPomEvidence(newDependency, pom, null);
                     engine.getDependencies().add(newDependency);
-                    Collections.sort(engine.getDependencies());
                 } else {
                     if (externalPom == null) {
                         pom = PomUtils.readPom(path, jar);
@@ -932,8 +931,11 @@ public class JarAnalyzer extends AbstractFileTypeAnalyzer {
         if (tempFileLocation != null && tempFileLocation.exists()) {
             LOGGER.debug("Attempting to delete temporary files");
             final boolean success = FileUtils.delete(tempFileLocation);
-            if (!success) {
-                LOGGER.warn("Failed to delete some temporary files, see the log for more details");
+            if (!success && tempFileLocation.exists()) {
+                final String[] l = tempFileLocation.list();
+                if (l != null && l.length > 0) {
+                    LOGGER.warn("Failed to delete some temporary files, see the log for more details");
+                }
             }
         }
     }
@@ -1218,7 +1220,7 @@ public class JarAnalyzer extends AbstractFileTypeAnalyzer {
      * @throws AnalysisException thrown if unable to create temporary directory
      */
     private File getNextTempDirectory() throws AnalysisException {
-        dirCount += 1;
+        final int dirCount = DIR_COUNT.incrementAndGet();
         final File directory = new File(tempFileLocation, String.valueOf(dirCount));
         //getting an exception for some directories not being able to be created; might be because the directory already exists?
         if (directory.exists()) {

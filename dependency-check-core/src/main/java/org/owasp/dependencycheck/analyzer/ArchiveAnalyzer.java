@@ -221,6 +221,18 @@ public class ArchiveAnalyzer extends AbstractFileTypeAnalyzer {
     }
 
     /**
+     * Does not support parallel processing as it both modifies and iterates
+     * over the engine's list of dependencies.
+     *
+     * @see #analyzeFileType(Dependency, Engine)
+     * @see #findMoreDependencies(Engine, File)
+     */
+    @Override
+    public boolean supportsParallelProcessing() {
+        return false;
+    }
+
+    /**
      * Analyzes a given dependency. If the dependency is an archive, such as a
      * WAR or EAR, the contents are extracted, scanned, and added to the list of
      * dependencies within the engine.
@@ -237,6 +249,7 @@ public class ArchiveAnalyzer extends AbstractFileTypeAnalyzer {
 
         //make a copy
         final Set<Dependency> dependencySet = findMoreDependencies(engine, tmpDir);
+
         if (!dependencySet.isEmpty()) {
             for (Dependency d : dependencySet) {
                 //fix the dependency's display name and path
@@ -248,6 +261,7 @@ public class ArchiveAnalyzer extends AbstractFileTypeAnalyzer {
                         d.getFileName());
                 d.setFilePath(displayPath);
                 d.setFileName(displayName);
+                d.setProjectReferences(dependency.getProjectReferences());
 
                 //TODO - can we get more evidence from the parent? EAR contains module name, etc.
                 //analyze the dependency (i.e. extract files) if it is a supported type.
@@ -363,31 +377,43 @@ public class ArchiveAnalyzer extends AbstractFileTypeAnalyzer {
             }
             archiveExt = archiveExt.toLowerCase();
 
-            FileInputStream fis;
+            final FileInputStream fis;
             try {
                 fis = new FileInputStream(archive);
             } catch (FileNotFoundException ex) {
                 LOGGER.debug("", ex);
                 throw new AnalysisException("Archive file was not found.", ex);
             }
+            BufferedInputStream in = null;
+            ZipArchiveInputStream zin = null;
+            TarArchiveInputStream tin = null;
+            GzipCompressorInputStream gin = null;
+            BZip2CompressorInputStream bzin = null;
             try {
                 if (ZIPPABLES.contains(archiveExt)) {
-                    final BufferedInputStream in = new BufferedInputStream(fis);
+                    in = new BufferedInputStream(fis);
                     ensureReadableJar(archiveExt, in);
-                    extractArchive(new ZipArchiveInputStream(in), destination, engine);
+                    zin = new ZipArchiveInputStream(in);
+                    extractArchive(zin, destination, engine);
                 } else if ("tar".equals(archiveExt)) {
-                    extractArchive(new TarArchiveInputStream(new BufferedInputStream(fis)), destination, engine);
+                    in = new BufferedInputStream(fis);
+                    tin = new TarArchiveInputStream(in);
+                    extractArchive(tin, destination, engine);
                 } else if ("gz".equals(archiveExt) || "tgz".equals(archiveExt)) {
                     final String uncompressedName = GzipUtils.getUncompressedFilename(archive.getName());
                     final File f = new File(destination, uncompressedName);
                     if (engine.accept(f)) {
-                        decompressFile(new GzipCompressorInputStream(new BufferedInputStream(fis)), f);
+                        in = new BufferedInputStream(fis);
+                        gin = new GzipCompressorInputStream(in);
+                        decompressFile(gin, f);
                     }
                 } else if ("bz2".equals(archiveExt) || "tbz2".equals(archiveExt)) {
                     final String uncompressedName = BZip2Utils.getUncompressedFilename(archive.getName());
                     final File f = new File(destination, uncompressedName);
                     if (engine.accept(f)) {
-                        decompressFile(new BZip2CompressorInputStream(new BufferedInputStream(fis)), f);
+                        in = new BufferedInputStream(fis);
+                        bzin = new BZip2CompressorInputStream(in);
+                        decompressFile(bzin, f);
                     }
                 }
             } catch (ArchiveExtractionException ex) {
@@ -397,7 +423,14 @@ public class ArchiveAnalyzer extends AbstractFileTypeAnalyzer {
                 LOGGER.warn("Exception reading archive '{}'.", archive.getName());
                 LOGGER.debug("", ex);
             } finally {
+                //overly verbose and not needed... but keeping it anyway due to
+                //having issue with file handles being left open
                 close(fis);
+                close(in);
+                close(zin);
+                close(tin);
+                close(gin);
+                close(bzin);
             }
         }
     }
