@@ -293,6 +293,12 @@ public final class Settings {
          */
         public static final String ANALYZER_COCOAPODS_ENABLED = "analyzer.cocoapods.enabled";
         /**
+         * The properties key for whether the carthage analyzer is enabled.
+         */
+        public static final String ANALYZER_CARTHAGE_ENABLED = "analyzer.carthage.enabled";
+
+        /**
+        /**
          * The properties key for whether the SWIFT package manager analyzer is enabled.
          */
         public static final String ANALYZER_SWIFT_PACKAGE_MANAGER_ENABLED = "analyzer.swift.package.manager.enabled";
