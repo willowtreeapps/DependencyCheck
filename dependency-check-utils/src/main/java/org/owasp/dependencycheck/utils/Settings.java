@@ -296,8 +296,10 @@ public final class Settings {
          * The properties key for whether the carthage analyzer is enabled.
          */
         public static final String ANALYZER_CARTHAGE_ENABLED = "analyzer.carthage.enabled";
-
         /**
+         * The properties key for whether the cocoapods analyzer is enabled.
+         */
+        public static final String ANALYZER_PODFILE_LOCK_ENABLED = "analyzer.podfilelock.enabled";
         /**
          * The properties key for whether the SWIFT package manager analyzer is enabled.
          */

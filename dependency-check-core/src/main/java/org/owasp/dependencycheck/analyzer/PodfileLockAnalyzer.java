@@ -118,7 +118,7 @@ public class PodfileLockAnalyzer extends AbstractFileTypeAnalyzer {
      */
     @Override
     protected String getAnalyzerEnabledSettingKey() {
-        return Settings.KEYS.ANALYZER_COCOAPODS_ENABLED;
+        return Settings.KEYS.ANALYZER_PODFILE_LOCK_ENABLED;
     }
 
     @Override
