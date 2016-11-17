@@ -297,6 +297,10 @@ public final class Settings {
          */
         public static final String ANALYZER_CARTHAGE_ENABLED = "analyzer.carthage.enabled";
         /**
+         * The properties key for whether the podfile analyzer is enabled.
+         */
+        public static final String ANALYZER_PODFILE_LOCK_ENABLED = "analyzer.podfilelock.enabled";
+        /**
          * The properties key for whether the SWIFT package manager analyzer is
          * enabled.
          */
